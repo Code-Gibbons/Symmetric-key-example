@@ -1,5 +1,6 @@
 ### General Ignores
 [Oo]ut/
+[Bb]uild/
 
 ### CPP specific
 # Prerequisites
