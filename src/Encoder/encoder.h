@@ -24,6 +24,8 @@ class Encoder {
     std::string GetUserKey();
     std::string GetPlainTextMsg();
     std::string GetCipherText();
+
+    void EncodeMessage(void);
 };
 }  // namespace encoder
 

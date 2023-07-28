@@ -1,9 +1,9 @@
-#include <readline/readline.h>  // getline
 
-#include <algorithm>   // transform
-#include <functional>  // ptr_fun
-#include <iostream>    // cin, cout
-#include <sstream>     // istringstream, iss
+#include <algorithm>            // transform
+#include <functional>           // ptr_fun
+#include <iostream>             // cin, cout
+#include <sstream>              // istringstream, iss
+#include <readline/readline.h>  // getline
 
 #include "encoder.h"  // Encoder class
 
@@ -51,8 +51,8 @@ std::string GetSanitizedUserInput(void) {
     return intput;
 }
 
-// Process arguments from the command line and updates the provided encoder
-void ProcessArg(std::string& consoleIn, encoder::Encoder& myEncoder) {
+// Process arguments from the command line and passes them to encoder
+void ProcessUserArg(std::string& consoleIn, encoder::Encoder& myEncoder) {
     std::istringstream iss(consoleIn);
     std::vector<std::string> userFlagsAndArgs;
     std::string strItem;
@@ -102,26 +102,6 @@ void ProcessArg(std::string& consoleIn, encoder::Encoder& myEncoder) {
     }
 }
 
-void EncodeMessage(encoder::Encoder& myEncoder) {
-    if (myEncoder.GetUserKey().empty()) {
-        std::cout << "Error encoder missing a key, cannot encode message."
-                  << std::endl;
-        return;
-    }
-
-    if (myEncoder.GetPlainTextMsg().empty()) {
-        std::cout
-            << "Error encoder missing a message, key has nothing to encode."
-            << std::endl;
-        return;
-    } else {
-        std::cout << "Encoding would be performed here!" << std::endl;
-        std::cout << "Using key: " << myEncoder.GetUserKey() << std::endl;
-        std::cout << "For   message: " << myEncoder.GetPlainTextMsg()
-                  << std::endl;
-    }
-}
-
 int main(int argc, char** argv) {
     Encoder myEncoder = encoder::Encoder();
 
@@ -135,9 +115,9 @@ int main(int argc, char** argv) {
             break;
         }
 
-        ProcessArg(consoleIn, myEncoder);
+        ProcessUserArg(consoleIn, myEncoder);
 
         std::cout << "Attempting to encode" << std::endl;
-        EncodeMessage(myEncoder);
+        myEncoder.EncodeMessage();
     };
 }
