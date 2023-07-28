@@ -38,7 +38,7 @@ endif()
 # These are seperate applications so we need to keep them in different CMakeLists
 # A top level list is still possible just basically need this is a global project and then
 # have a subdirectory(src/Decoder) and subdirectory(src/Encoder) to start lets make the encoder
-add_executable(PROJECT_NAME.exe
+add_executable(PROJECT_NAME
     src/Encoder/encoder.cpp)
 
 # target_link_libraries(PROJECT_NAME.exe PRIVATE cryptopp-shared)

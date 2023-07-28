@@ -1,13 +1,16 @@
 #include <iostream> //
 #include "encoder.h"
-using namespace encoder;
 
-std::string GetUserKey()
+namespace encoder
 {
-    std::string inputKey;
-    std::getline(std::cin, inputKey);
-    return inputKey;
+    std::string GetUserKey()
+    {
+        std::string inputKey;
+        std::getline(std::cin, inputKey);
+        return inputKey;
+    }
 }
+
 
 int main()
 {
