@@ -1,5 +1,7 @@
-### CPP specific
+### General Ignores
+[Oo]ut/
 
+### CPP specific
 # Prerequisites
 *.d
 
