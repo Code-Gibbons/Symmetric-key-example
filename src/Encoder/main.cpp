@@ -56,26 +56,60 @@ std::string GetSanitizedUserInput(void)
 }
 
 // Process arguments from the command line and updates the provided encoder
-void ProcessArg(encoder::Encoder& myEncoder, std::string& option, std::string& arg)
+void ProcessArg(std::string& consoleIn, encoder::Encoder& myEncoder)
 {
-    // key
-    if(option == optionKeywords[0])
+    std::istringstream iss(consoleIn);
+    std::vector<std::string> userFlagsAndArgs;
+    std::string strItem;
+
+    while (iss >> strItem)
     {
-        myEncoder.SetUserKey(arg);
-    }
-    // message
-    if(option == optionKeywords[1])
-    {
-        myEncoder.SetPlainTextMsg(arg);
-    }
-    // help
-    if(option == optionKeywords[2])
-    {
-        std::cout << "Simple Encoder Application.\n" <<
-        "Supported Args: -k <key> -m <message> -h <help>" <<
-        "Usage:\n-k mySecretKey -m my message to encode\n" << std::endl;
+        userFlagsAndArgs.push_back(strItem);
     }
 
+    std::string option;
+    std::string arg;
+
+    // Parse flags and args
+    for (size_t i = 0; i < userFlagsAndArgs.size(); ++i)
+    {
+        const std::string& item = userFlagsAndArgs[i];
+        if (item.empty() || item[0] != '-')
+        {
+            std::cout << "Warning: Invalid input format for option: " << item << std::endl;
+            continue;
+        }
+        option = item;
+
+        // Check if the next item exists and is not an option itself otherwise move to next arg
+        if (i + 1 < userFlagsAndArgs.size() && userFlagsAndArgs[i + 1][0] != '-')
+        {
+            arg = userFlagsAndArgs[i + 1];
+            i++;
+        }
+        else
+        {
+            arg.clear();
+        }
+
+        // key arg
+        if(option == optionKeywords[0])
+        {
+            myEncoder.SetUserKey(arg);
+        }
+        // message arg
+        else if(option == optionKeywords[1])
+        {
+            myEncoder.SetPlainTextMsg(arg);
+        }
+        // help arg
+        else if(option == optionKeywords[2])
+        {
+            std::cout << "Simple Encoder Application.\n" <<
+            "Supported Args: -k <key> -m <message> -h <help>" <<
+            "Usage:\n-k mySecretKey -m my message to encode\n" << std::endl;
+        }
+    }
 }
 
 void EncodeMessage(encoder::Encoder& myEncoder)
@@ -83,11 +117,13 @@ void EncodeMessage(encoder::Encoder& myEncoder)
     if(myEncoder.GetUserKey().empty())
     {
         std::cout << "Error encoder missing a key, cannot encode message." << std::endl;
+        return;
     }
 
     if(myEncoder.GetPlainTextMsg().empty())
     {
         std::cout << "Error encoder missing a message, key has nothing to encode." << std::endl;
+        return;
     }
     else
     {
@@ -95,7 +131,6 @@ void EncodeMessage(encoder::Encoder& myEncoder)
         std::cout << "Using key: " << myEncoder.GetUserKey() << std::endl;
         std::cout << "For   message: " << myEncoder.GetPlainTextMsg() << std::endl;
     }
-
 }
 
 int main(int argc, char **argv)
@@ -112,37 +147,7 @@ int main(int argc, char **argv)
             break;
         }
 
-        std::istringstream iss(consoleIn);
-        std::vector<std::string> userFlagsAndArgs;
-        std::string strItem;
-        while (iss >> strItem)
-        {
-            userFlagsAndArgs.push_back(strItem);
-        }
-
-        // process flags and args
-        for (size_t i = 0; i < userFlagsAndArgs.size(); ++i)
-        {
-            const std::string& item = userFlagsAndArgs[i];
-
-            if (item.empty() || item[0] != '-')
-            {
-                std::cout << "Warning: Invalid input format for option: " << item << std::endl;
-                continue;
-            }
-
-            std::string option = item;
-            std::string arg;
-
-            // Check if the next item exists and is not an option itself otherwise move to next arg
-            if (i + 1 < userFlagsAndArgs.size() && userFlagsAndArgs[i + 1][0] != '-')
-            {
-                arg = userFlagsAndArgs[i + 1];
-                i++;
-            }
-
-            ProcessArg(myEncoder, option, arg);
-        }
+        ProcessArg(consoleIn , myEncoder);
 
         std::cout << "Attempting to encode" << std::endl;
         EncodeMessage(myEncoder);
