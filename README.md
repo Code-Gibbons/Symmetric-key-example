@@ -44,5 +44,6 @@ The original message entered for the provided key was myMessage.
  - C++
  - CMake
  - Crypto++
- - Visual Studio Community
  - VSCode
+ - LLVM (Clang)
+ - Google C++ Style Guide
