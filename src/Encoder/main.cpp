@@ -1,4 +1,5 @@
 #include <iostream>             // cin, cout
+#include <sstream>              // istringstream, iss
 #include <readline/readline.h>  // getline
 #include <algorithm>            // transform
 #include <functional>           // ptr_fun
@@ -91,6 +92,8 @@ void EncodeMessage(encoder::Encoder& myEncoder)
     else
     {
         std::cout << "Encoding would be performed here!" << std::endl;
+        std::cout << "Using key: " << myEncoder.GetUserKey() << std::endl;
+        std::cout << "For   message: " << myEncoder.GetPlainTextMsg() << std::endl;
     }
 
 }
@@ -109,42 +112,39 @@ int main(int argc, char **argv)
             break;
         }
 
+        std::istringstream iss(consoleIn);
         std::vector<std::string> userFlagsAndArgs;
-        size_t inputStart = 0;
-        size_t inputEnd   = 0;
-
-        // Look for space delimited fields until we hit null and add them to the vector
-        while ((inputEnd = consoleIn.find(' ', inputStart)) != std::string::npos)
+        std::string strItem;
+        while (iss >> strItem)
         {
-            userFlagsAndArgs.push_back(consoleIn.substr(inputStart, inputEnd - inputStart));
-            inputStart = inputEnd + 1;
+            userFlagsAndArgs.push_back(strItem);
         }
-        userFlagsAndArgs.push_back(consoleIn.substr(inputStart));
 
         // process flags and args
-        for(const std::string &item: userFlagsAndArgs)
+        for (size_t i = 0; i < userFlagsAndArgs.size(); ++i)
         {
-            std::string optionVal = FindOptionSubstring(item);
-            if(optionVal.empty())
+            const std::string& item = userFlagsAndArgs[i];
+
+            if (item.empty() || item[0] != '-')
             {
-                // No matching option at t his point no need to check the arg value
+                std::cout << "Warning: Invalid input format for option: " << item << std::endl;
                 continue;
             }
 
-            std::string optionArgVal = GetValueForOption(item, optionVal);
-            if(!optionArgVal.empty())
+            std::string option = item;
+            std::string arg;
+
+            // Check if the next item exists and is not an option itself otherwise move to next arg
+            if (i + 1 < userFlagsAndArgs.size() && userFlagsAndArgs[i + 1][0] != '-')
             {
-                ProcessArg(myEncoder, optionVal, optionArgVal);
+                arg = userFlagsAndArgs[i + 1];
+                i++;
             }
-            else
-            {
-                std::cout << "Warning option: " << optionVal << " was provided without a value.\nPlease Enter a value." << std::endl;
-            }
+
+            ProcessArg(myEncoder, option, arg);
         }
 
         std::cout << "Attempting to encode" << std::endl;
         EncodeMessage(myEncoder);
-
     };
-
 }
