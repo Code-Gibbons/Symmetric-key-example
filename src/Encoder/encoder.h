@@ -13,7 +13,8 @@ namespace encoder
     std::string cipherText;
 
     public:
-    // Constructor
+    // Constructors
+    Encoder();
     Encoder(std::string userKey, std::string userMsg);
 
     // Setters

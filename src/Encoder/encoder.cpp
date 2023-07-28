@@ -6,6 +6,13 @@
 //******************************************************************************
 // Constructors
 //******************************************************************************
+encoder::Encoder::Encoder()
+{
+    encoder::Encoder::userKey = "";
+    encoder::Encoder::plainTextMsg = "";
+    encoder::Encoder::cipherText = "";
+}
+
 encoder::Encoder::Encoder(std::string userKey, std::string userMsg)
 {
     encoder::Encoder::userKey = userKey;
