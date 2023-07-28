@@ -1,18 +1,16 @@
 #ifndef ENCODER_H
 #define ENCODER_H
 
-#include <string> // std namespace string not C style string
+#include <string>  // std namespace string not C style string
 
-namespace encoder
-{
-    class Encoder
-    {
-    private:
+namespace encoder {
+class Encoder {
+   private:
     std::string userKey;
     std::string plainTextMsg;
     std::string cipherText;
 
-    public:
+   public:
     // Constructors
     Encoder();
     Encoder(std::string userKey, std::string userMsg);
@@ -26,7 +24,7 @@ namespace encoder
     std::string GetUserKey();
     std::string GetPlainTextMsg();
     std::string GetCipherText();
-    };
-}
+};
+}  // namespace encoder
 
-#endif // ENCODER_H
+#endif  // ENCODER_H
