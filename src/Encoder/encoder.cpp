@@ -3,11 +3,6 @@
 
 #include "encoder.h"
 
-const char keyArgChar = 'k';
-const char msgArgChar = 'm';
-const char helpArgChar = 'h';
-const char flagChar =  '-';
-
 //******************************************************************************
 // Constructors
 //******************************************************************************
@@ -56,49 +51,3 @@ std::string encoder::Encoder::GetCipherText()
 }
 
 
-int main(int argc, char **argv)
-{
-    std::string passKeyArg;
-    std::string messageArg;
-
-    // Don't forget to start at one so we skip program name
-    for(int i = 1; i <argc; ++i)
-    {
-        // Look for the flag and check if it's a supported one
-        if(argv[i][0] == flagChar)
-        {
-            // Don't overflow past max inputs
-            if( i + 1 < argc)
-            {
-                if(argv[i][1] == 'k')
-                {
-                    passKeyArg = argv[i +1];
-                    i++;
-                }
-                else if(argv[i][1] == 'm')
-                {
-                    messageArg = argv[i+1];
-                    i++;
-                }
-                else
-                {
-                    std::cout << "Option: " << argv[i] << " requires a value." << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "Unsupported argument entered: " << argv[i] << std::endl;
-            }
-
-        }
-        else
-        {
-            std::cout << "Error.\n Flag provided: " << argv[i]
-            << " is not a supported flag.\n Please input a supported flag." << std::endl;
-        }
-
-
-
-    }
-
-}
