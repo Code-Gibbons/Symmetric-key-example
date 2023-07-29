@@ -145,7 +145,10 @@ void encoder::Encoder::EncodeMessage() {
         std::cout << "Using passkey: " << userKey << std::endl;
         std::cout << "For   message: " << plainTextMsg
                   << std::endl;
-    std::string cipherText = ECC_EncryptMessage(userKey, publicKey);
+
+    cipherText = ECC_EncryptMessage(userKey, publicKey);
+    std::cout << "For the provided key generated the following ciphertext:\n"
+    << cipherText << std::endl;
 
     }
 }
