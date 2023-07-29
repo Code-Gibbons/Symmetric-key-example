@@ -10,10 +10,10 @@
 
 using namespace decoder;
 
-int main(int argc, char** argv)
+// Process vargs and populate decoder object
+// Returns 0 for arg process or 1 for exit condition (either failure or help prompt presently)
+int ParseVArgsIntoDecoder(int argc, char** argv, Decoder myDecoder)
 {
-    Decoder myDecoder = decoder::Decoder();
-
     if (argc <= 1) {
         std::cerr << "Error: Missing command-line arguments." << std::endl;
         std::cerr << "Usage: decoder -k <key>" << std::endl;
@@ -37,7 +37,16 @@ int main(int argc, char** argv)
         if (i + 1 < argc && argv[i + 1][0] != '-') {
             arg = argv[i + 1];
             i++;
-        } else {
+        }
+        // help arg
+        else if (option == "-h") {
+            std::cout << "Simple Decoder Application.\n"
+                      << "Supported Args: -k <key>\n"
+                      << "Usage:\ndecoder -k \"my SecretKey\"\n"
+                      << std::endl;
+            return 1;
+        }
+        else {
             std::cerr << "Error: Missing argument for option: " << option << std::endl;
             return 1;
         }
@@ -45,15 +54,7 @@ int main(int argc, char** argv)
         // key arg
         if (option == "-k") {
             myDecoder.SetUserKey(arg);
-        }
 
-        // help arg
-        else if (option == "-h") {
-            std::cout << "Simple Decoder Application.\n"
-                      << "Supported Args: -k <key>\n"
-                      << "Usage:\ndecoder -k mySecretKey\n"
-                      << std::endl;
-            return 0;
         }
         // Invalid arg
         else {
@@ -61,21 +62,39 @@ int main(int argc, char** argv)
             return 1;
         }
     }
+    return 0;
+}
 
-    ProcessUserArg(myDecoder.GetUserKey(), myDecoder);
+
+int main(int argc, char** argv)
+{
+    Decoder myDecoder = decoder::Decoder();
+
+    int rc = ParseVArgsIntoDecoder(argc, argv, myDecoder);
+    if(rc !=0)
+    {
+        return -1; // Something signaled end of program
+    }
 
     // We only want this to read not modify
-    boost::interprocess::managed_shared_memory cipherMem(boost::interprocess::open_only, "CipherTextMemory");
-
-     auto cipherTextPtr = cipherMem.find<char>("CipherText");
-     if (cipherTextPtr.first) {
-        // Cipher text found, print it
-        const char* sharedMemoryAddress = cipherTextPtr.first;
-        myDecoder.SetCipherText(sharedMemoryAddress);
-     }
-    else
+    try
     {
-        std::cout << "Error no cipher text was found please run the encoder to generate the ciphertext." << std::endl;
+        boost::interprocess::managed_shared_memory cipherMem(boost::interprocess::open_only, "CipherTextMemory");
+
+        auto cipherTextPtr = cipherMem.find<char>("CipherText");
+        if (cipherTextPtr.first) {
+            const char* sharedMemoryAddress = cipherTextPtr.first;
+            myDecoder.SetCipherText(sharedMemoryAddress);
+            boost::interprocess::shared_memory_object::remove("CipherTextMemory");
+        }
+        else
+        {
+            std::cout << "Error no cipher text was found please run the encoder to generate the ciphertext." << std::endl;
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
 
 
