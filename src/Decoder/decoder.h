@@ -1,10 +1,13 @@
-#ifndef ENCODER_H
-#define ENCODER_H
+#ifndef DECODER_H
+#define DECODER_H
 
 #include <string>       // std namespace string not C style string
 #include <eccrypto.h>   // Public and Private key
-namespace encoder {
-class Encoder {
+
+
+// Look at this we could deff do some inheritance if I have time I'd like to make both of these inherit from some class
+namespace decoder {
+class Decoder {
    private:
     std::string userKey;
     std::string plainTextMsg;
@@ -13,14 +16,13 @@ class Encoder {
     CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
 
     void GenerateECCKeysFromUserKey(void);
-    std::string ECC_EncryptMessage(void);
     std::string ECC_DecryptMessage(void);
 
 
    public:
     // Constructors
-    Encoder();
-    Encoder(std::string userKey, std::string userMsg);
+    Decoder();
+    Decoder(std::string userKey, std::string cipherText);
 
     // Setters
     void SetUserKey(std::string userKey);
@@ -36,7 +38,7 @@ class Encoder {
     CryptoPP::ECIES<CryptoPP::ECP>::PublicKey GetPublicKey(void);
     CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey GetPrivateKey(void);
 
-    void EncodeMessage(void);
+    void DecodeMessage(void);
 };
 }  // namespace encoder
 

@@ -26,20 +26,42 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # endif()
 endif()
 
-# We could use submodules or try fetch content looks neat but play with it later stick with knowns for now
-# include(FetchContent)
-# FetchContent_Declare(
-# cryptopp
-# GIT_REPOSITORY https://github.com/weidai11/cryptopp.git
-# GIT_TAG        4d0cad5401d1a2c998b314bc89288c9620d3021d # 8.8 release
-# )
+# Rather than making a CMakeList for the submodule let's fetch it and make things easier
+message("Attempting to fetch Crypto++ Library")
 
-# Cleanup naming later for right now NAME.exe is fine
-# These are seperate applications so we need to keep them in different CMakeLists
-# A top level list is still possible just basically need this is a global project and then
-# have a subdirectory(src/Decoder) and subdirectory(src/Encoder) to start lets make the encoder
-add_executable(PROJECT_NAME
+include(FetchContent)
+
+# Go figure I pick a library the doesn't support CMake this repo seems to attempt to fix that issue let's try
+FetchContent_Declare(
+    cryptopp-cmake
+    GIT_REPOSITORY https://github.com/abdes/cryptopp-cmake.git
+    GIT_TAG f857b775bcb4ff24e4993d85cce811587f8b0616 # CMake 8.8 release
+)
+
+FetchContent_MakeAvailable(cryptopp-cmake)
+FetchContent_GetProperties(cryptopp-cmake)
+
+# Boost time for shared memory
+message("Attempting to fetch Boost Interprocess Library")
+
+# Define the desired Boost version and components
+set(BOOST_VERSION "1.76.0")
+set(BOOST_COMPONENTS interprocess)
+
+# Fetch Boost
+FetchContent_Declare(
+    boost
+    URL "https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.zip"
+)
+FetchContent_MakeAvailable(boost)
+include_directories(${boost_SOURCE_DIR})
+
+# message("All Libraries are fetched and avaliable linking to the executable.")
+add_executable(${PROJECT_NAME}
     src/Encoder/main.cpp
-    src/Encoder/encoder.cpp)
+    src/Encoder/encoder.cpp
+)
 
-# target_link_libraries(PROJECT_NAME.exe PRIVATE cryptopp-shared)
+# target_link_directories(${PROJECT_NAME} PRIVATE ${cryptopp_BINARY_DIR})
+# target_include_directories(${PROJECT_NAME} PRIVATE ${cryptopp_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE cryptopp)
