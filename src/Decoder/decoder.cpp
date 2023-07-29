@@ -125,14 +125,14 @@ std::string decoder::Decoder::ECC_DecryptMessage(void) {
 
 void decoder::Decoder::DecodeMessage() {
     if (userKey.empty()) {
-        std::cout << "Error encoder missing a key, cannot encode message."
+        std::cout << "Decoder Error: missing the key, cannot decode ciphertext."
                   << std::endl;
         return;
     }
 
     if (cipherText.empty()) {
         std::cout
-            << "Error encoder missing the ciphertext, key has nothing to decode."
+            << "Decoder Error: missing the ciphertext, key has nothing to decode."
             << std::endl;
         return;
     }

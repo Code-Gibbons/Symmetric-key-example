@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 
     std::cout << "Received cipher text from shared memory: " << myDecoder.GetCipherText() << std::endl;
     myDecoder.DecodeMessage();
-    std::cout << "Using the key:"<< myDecoder.GetUserKey()<< "Decoded the following message: \n" << myDecoder.GetPlainTextMsg() << std::endl;
+    std::cout << "Using the key: "<< myDecoder.GetUserKey() << ". Decoded the following message: \n" << myDecoder.GetPlainTextMsg() << std::endl;
 
 
     // Shared memory segment will be automatically deleted when all processes using it exit
