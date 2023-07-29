@@ -4,9 +4,9 @@
 #include <iostream>             // cin, cout
 #include <sstream>              // istringstream, iss
 #include <readline/readline.h>  // getline
-
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+#include <fstream>
+// #include <boost/interprocess/managed_shared_memory.hpp>
+// #include <boost/interprocess/mapped_region.hpp>
 
 #include "encoder.h"  // Encoder class
 
@@ -106,30 +106,37 @@ int main(int argc, char** argv) {
     std::cout << "Attempting to encode" << std::endl;
     myEncoder.EncodeMessage();
 
-    try {
-
-        const char* sharedMemoryName = std::getenv("SHARED_MEMORY_NAME");
-        // Risky but the build script should succeed here
-        if (!sharedMemoryName) {
-            std::cerr << "Error: SHARED_MEMORY_NAME environment variable not set." << std::endl;
-            return 1;
-        }
-
-        boost::interprocess::managed_shared_memory shareCipherMem(boost::interprocess::open_or_create, sharedMemoryName, MEMORY_MAX);
-        // Set the construct to CipherText for decoder find
-        char* sharedMemoryAddress = shareCipherMem.find_or_construct<char>("CipherText")[myEncoder.GetCipherText().size()]();
-
-        // Copy to memory using C style
-        std::memcpy(sharedMemoryAddress,
-                    myEncoder.GetCipherText().c_str(),
-                    myEncoder.GetCipherText().size() + 1);
-
-        // No need to detatch I believe the decode can detach but the encoder if it terminates needs to
-        // leave the shared memory alone so that the decoder can access it
-    }
-    // Might be a better exception here but not super familiar with what to throw so just any catch is good for now
-    catch (const std::exception& ex) {
-    std::cerr << "Error: " << ex.what() << std::endl;
+    // Going with filestream to prove this works maybe come back to share mem
+    std::string ciphertext = myEncoder.GetCipherText();
+    std::ofstream file("ciphertext.txt");
+    file << ciphertext;
+    file.close();
     return 1;
-    }
+
+
+    // try {
+
+    //     const char* sharedMemoryName = std::getenv("SHARED_MEMORY_NAME");
+    //     // Risky but the build script should succeed here
+    //     if (!sharedMemoryName) {
+    //         std::cerr << "Error: SHARED_MEMORY_NAME environment variable not set." << std::endl;
+    //         return 1;
+    //     }
+
+    //     boost::interprocess::managed_shared_memory shareCipherMem(boost::interprocess::open_or_create, sharedMemoryName, MEMORY_MAX);
+    //     // Set the construct to CipherText for decoder find
+    //     char* sharedMemoryAddress = shareCipherMem.find_or_construct<char>("CipherText")[myEncoder.GetCipherText().size()]();
+
+    //     // Copy to memory using C style
+    //     std::memcpy(sharedMemoryAddress,
+    //                 myEncoder.GetCipherText().c_str(),
+    //                 myEncoder.GetCipherText().size() + 1);
+
+    //     // No need to detatch I believe the decode can detach but the encoder if it terminates needs to
+    //     // leave the shared memory alone so that the decoder can access it
+    // }
+    // // Might be a better exception here but not super familiar with what to throw so just any catch is good for now
+    // catch (const std::exception& ex) {
+    // std::cerr << "Error: " << ex.what() << std::endl;
+    // }
 }
