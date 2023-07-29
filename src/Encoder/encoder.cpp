@@ -88,9 +88,7 @@ CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey encoder::Encoder::GetPrivateKey(void)
 
 // Function to generate ECC keys using ECC generator PBKDF2 which is a "simple"
 // derivation function but still resistant to dictionary attacks
-void GenerateECCKeysFromUserKey(const std::string& inputKey,
-                                CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey& privateKey,
-                                CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& publicKey)
+void encoder::Encoder::GenerateECCKeysFromUserKey()
 {
     CryptoPP::AutoSeededRandomPool prng;
     // According to API below call is a managed with zeroization
@@ -99,8 +97,8 @@ void GenerateECCKeysFromUserKey(const std::string& inputKey,
     CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> ecc;
     // Attention should be given that this is CryptoPP::byte not std::byte
     ecc.DeriveKey(derivedKey.data(), derivedKey.size(), 0,
-    reinterpret_cast<const CryptoPP::byte*>(inputKey.data()),
-    inputKey.size(), nullptr, 0, NUM_PBKDF2_ITERATIONS);
+    reinterpret_cast<const CryptoPP::byte*>(userKey.data()),
+    userKey.size(), nullptr, 0, NUM_PBKDF2_ITERATIONS);
 
     prng.IncorporateEntropy(derivedKey.data(), derivedKey.size());
 
@@ -114,13 +112,12 @@ void GenerateECCKeysFromUserKey(const std::string& inputKey,
 }
 
 // Encrypt the message using the public key we just generated
-std::string ECC_EncryptMessage(const std::string& message,
-                                const CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& publicKey) {
+std::string encoder::Encoder::ECC_EncryptMessage(void) {
         std::string cipherText;
 
         CryptoPP::AutoSeededRandomPool prng;
         CryptoPP::ECIES<CryptoPP::ECP>::Encryptor encryptor(publicKey);
-        CryptoPP::StringSource(message, true, new CryptoPP::PK_EncryptorFilter(prng, encryptor,
+        CryptoPP::StringSource(plainTextMsg, true, new CryptoPP::PK_EncryptorFilter(prng, encryptor,
         new CryptoPP::StringSink(cipherText)));
 
         return cipherText;
@@ -140,15 +137,20 @@ void encoder::Encoder::EncodeMessage() {
             << "Error encoder missing a message, key has nothing to encode."
             << std::endl;
         return;
-    } else {
+    }
+    else {
         std::cout << "Encoding the provided message." << std::endl;
         std::cout << "Using passkey: " << userKey << std::endl;
         std::cout << "For   message: " << plainTextMsg
                   << std::endl;
 
-    cipherText = ECC_EncryptMessage(userKey, publicKey);
+    // Generate ECC keys from the user key
+    CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
+    CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
+    GenerateECCKeysFromUserKey(userKey, privateKey, publicKey);
+
+    cipherText = ECC_EncryptMessage(plainTextMsg, publicKey);
     std::cout << "For the provided key generated the following ciphertext:\n"
     << cipherText << std::endl;
-
     }
 }

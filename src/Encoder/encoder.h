@@ -12,6 +12,8 @@ class Encoder {
     CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
     CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
 
+    void encoder::Encoder::GenerateECCKeysFromUserKey(void);
+    std::string encoder::Encoder::ECC_EncryptMessage(void);
    public:
     // Constructors
     Encoder();
