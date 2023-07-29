@@ -14,7 +14,6 @@ class Encoder {
 
     void GenerateECCKeysFromUserKey(void);
     std::string ECC_EncryptMessage(void);
-    std::string ECC_DecryptMessage(void);
 
 
    public:

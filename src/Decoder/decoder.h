@@ -18,7 +18,6 @@ class Decoder {
     void GenerateECCKeysFromUserKey(void);
     std::string ECC_DecryptMessage(void);
 
-
    public:
     // Constructors
     Decoder();
