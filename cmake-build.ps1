@@ -16,6 +16,10 @@ else {
     exit
 }
 
+# Common build directory for shared memory
+$commonBuildDir = "shared_resources"
+$sharedMemoryName = "CipherTextMemory"
+
 Write-Host "Checking for old build."
 if (Test-Path -Path $buildDir -PathType Container) {
     Remove-Item -Path $buildDir -Force -Recurse
@@ -55,3 +59,6 @@ Invoke-Expression $makeCommand
 
 # Go back up
 Pop-Location
+
+# Set shared memory name in the environment variable to be accessed by both programs dunno if I like this but let's see
+$env:SHARED_MEMORY_NAME = $sharedMemoryName

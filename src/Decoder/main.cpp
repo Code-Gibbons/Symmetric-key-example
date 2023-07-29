@@ -79,13 +79,19 @@ int main(int argc, char** argv)
     // We only want this to read not modify
     try
     {
-        boost::interprocess::managed_shared_memory cipherMem(boost::interprocess::open_only, "CipherTextMemory");
+        const char* sharedMemoryName = std::getenv("SHARED_MEMORY_NAME");
+        // Risky but the build script should succeed here
+        if (!sharedMemoryName) {
+            std::cerr << "Error: SHARED_MEMORY_NAME environment variable not set." << std::endl;
+            return 1;
+        }
+        boost::interprocess::managed_shared_memory cipherMem(boost::interprocess::open_only, sharedMemoryName);
 
         auto cipherTextPtr = cipherMem.find<char>("CipherText");
         if (cipherTextPtr.first) {
             const char* sharedMemoryAddress = cipherTextPtr.first;
             myDecoder.SetCipherText(sharedMemoryAddress);
-            boost::interprocess::shared_memory_object::remove("CipherTextMemory");
+            boost::interprocess::shared_memory_object::remove(sharedMemoryName);
         }
         else
         {

@@ -108,9 +108,16 @@ int main(int argc, char** argv) {
 
     try {
 
-        boost::interprocess::managed_shared_memory shareCipherMem(boost::interprocess::open_or_create, "CipherTextMemory", MEMORY_MAX);
+        const char* sharedMemoryName = std::getenv("SHARED_MEMORY_NAME");
+        // Risky but the build script should succeed here
+        if (!sharedMemoryName) {
+            std::cerr << "Error: SHARED_MEMORY_NAME environment variable not set." << std::endl;
+            return 1;
+        }
+
+        boost::interprocess::managed_shared_memory shareCipherMem(boost::interprocess::open_or_create, sharedMemoryName, MEMORY_MAX);
         // Set the construct to CipherText for decoder find
-        char* sharedMemoryAddress = shareCipherMem.construct<char>("CipherText")[myEncoder.GetCipherText().size()]();
+        char* sharedMemoryAddress = shareCipherMem.find_or_construct<char>("CipherText")[myEncoder.GetCipherText().size()]();
 
         // Copy to memory using C style
         std::memcpy(sharedMemoryAddress,
