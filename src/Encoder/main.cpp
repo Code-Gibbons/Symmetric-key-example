@@ -90,6 +90,5 @@ int main(int argc, char** argv) {
 
         std::cout << "Attempting to encode" << std::endl;
         myEncoder.EncodeMessage();
-        std::cout << "Your ciphertext is: " << myEncoder.GetCipherText()  << std::endl;
     };
 }

@@ -3,6 +3,9 @@
 #include <readline/readline.h>
 #include <iostream>
 
+#include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
 #include <eccrypto.h>
 #include <osrng.h>
 #include <hex.h>
@@ -124,7 +127,21 @@ std::string encoder::Encoder::ECC_EncryptMessage(void) {
 
 }
 
+// This will be moved to the decrypt class after I verify I did all this correctly
+std::string encoder::Encoder::ECC_DecryptMessage(void) {
+    std::string decryptedText;
 
+    CryptoPP::AutoSeededRandomPool prng;
+    CryptoPP::ECIES<CryptoPP::ECP>::Decryptor decryptor(privateKey);
+    CryptoPP::StringSource(cipherText, true,
+                           new CryptoPP::PK_DecryptorFilter(prng, decryptor,
+                                                           new CryptoPP::StringSink(decryptedText)));
+
+    return decryptedText;
+}
+
+
+// Public accessible encode message which takes object fields and encodes a ciphertext msg with the generated key
 void encoder::Encoder::EncodeMessage() {
     if (userKey.empty()) {
         std::cout << "Error encoder missing a key, cannot encode message."
@@ -147,10 +164,22 @@ void encoder::Encoder::EncodeMessage() {
     // Generate ECC keys from the user key
     CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
     CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
-    GenerateECCKeysFromUserKey(userKey, privateKey, publicKey);
+    GenerateECCKeysFromUserKey();
 
-    cipherText = ECC_EncryptMessage(plainTextMsg, publicKey);
-    std::cout << "For the provided key generated the following ciphertext:\n"
-    << cipherText << std::endl;
+    cipherText = ECC_EncryptMessage();
+    std::string hexCipherText;
+    CryptoPP::StringSource(cipherText, true,
+        new CryptoPP::HexEncoder(
+            new CryptoPP::StringSink(hexCipherText),
+            false // uppercase
+        ));
+
+
+    std::cout << "For the provided key generated the following ciphertext:\n" << hexCipherText << std::endl;
+
+    std::string originalText = ECC_DecryptMessage();
+    std::cout << "For the provided key generated the following ciphertext:\n" << originalText << std::endl;
+
+
     }
 }
