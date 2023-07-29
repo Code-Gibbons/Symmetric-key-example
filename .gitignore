@@ -1,6 +1,6 @@
 ### General Ignores
 [Oo]ut/
-[Bb]uild/
+[Bb]uild*/
 
 ### CMake specific
 CMakeLists.txt.user
