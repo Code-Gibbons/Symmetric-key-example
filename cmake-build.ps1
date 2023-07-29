@@ -1,25 +1,28 @@
-# Delete the dir if it exists don't want cmake caching stuff
-$buildDir = "build"
+param (
+    [string]$target = "encode"
+)
 
-Write-Host "Checking for old build."
-if (Test-Path -Path $buildDir -PathType Container) {
-    Remove-Item -Path $buildDir -Force -Recurse
-    Write-Host "Deleted prior build run."
+# Set the build directory based on the target argument
+$buildDir = if ($target -eq "decode") {
+    "build_decode"
+}
+else {
+    "build_encode"
 }
 
-# Call CMake build with MinGW
-$cmakeCommand = "cmake -S . -B build -G ""MinGW Makefiles"""
-Write-Host "Generate makefiles for ming32-make."
-Invoke-Expression $cmakeCommand
+# Create the build directory if it does not exist
+if (-Not (Test-Path $buildDir)) {
+    New-Item -ItemType Directory -Path $buildDir | Out-Null
+}
 
-# Switch dirs
-Write-Host "Switch to makefile dir."
-Push-Location -Path $buildDir
+# Change to the build directory
+Set-Location $buildDir
 
-# Call Makefile
-$makeCommand = "mingw32-make"
-Write-Host "Running makefile."
-Invoke-Expression $makeCommand
+# Run the CMake command to configure and generate the build files
+cmake .. -DCMAKE_BUILD_TYPE=Release -DTARGET_TYPE=$target
 
-# Go back up
-Pop-Location
+# Build the project
+cmake --build .
+
+# Change back to the original directory
+Set-Location ..

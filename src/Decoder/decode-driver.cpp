@@ -12,7 +12,7 @@ using namespace decoder;
 
 // Process vargs and populate decoder object
 // Returns 0 for arg process or 1 for exit condition (either failure or help prompt presently)
-int ParseVArgsIntoDecoder(int argc, char** argv, Decoder myDecoder)
+int ParseVArgsIntoDecoder(int argc, char** argv, Decoder& myDecoder)
 {
     if (argc <= 1) {
         std::cerr << "Error: Missing command-line arguments." << std::endl;

@@ -26,8 +26,10 @@ std::string GetSanitizedUserInput(void) {
     return intput;
 }
 
-int main(int argc, char** argv) {
-
+// Process vargs and populate encoder object
+// Returns 0 for arg process or 1 for exit condition (either failure or help prompt presently)
+int ParseVArgsIntoEncoder(int argc, char** argv, Encoder& myEncoder)
+{
     if (argc <= 1) {
         std::cerr << "Error: Missing command-line arguments." << std::endl;
         std::cerr << "Usage: encoder -k <key> -m <message>" << std::endl;
@@ -36,7 +38,7 @@ int main(int argc, char** argv) {
 
     std::string option;
     std::string arg;
-    Encoder myEncoder = encoder::Encoder();
+
 
     for (int i = 1; i < argc; ++i) {
         const std::string item = argv[i];
@@ -87,28 +89,40 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
+    return 0;
+}
 
-        std::cout << "Attempting to encode" << std::endl;
-        myEncoder.EncodeMessage();
+// Driver for encoder
+int main(int argc, char** argv) {
 
-        try {
+    Encoder myEncoder = encoder::Encoder();
 
-            boost::interprocess::managed_shared_memory shareCipherMem(boost::interprocess::open_or_create, "CipherTextMemory", MEMORY_MAX);
-            // Set the construct to CipherText for decoder find
-            char* sharedMemoryAddress = shareCipherMem.construct<char>("CipherText")[myEncoder.GetCipherText().size()]();
+    int rc = ParseVArgsIntoEncoder(argc, argv,myEncoder);
+    if(rc != 0)
+    {
+        return -1;
+    }
 
-            // Copy to memory using C style
-            std::memcpy(sharedMemoryAddress,
-                        myEncoder.GetCipherText().c_str(),
-                        myEncoder.GetCipherText().size() + 1);
+    std::cout << "Attempting to encode" << std::endl;
+    myEncoder.EncodeMessage();
 
-            // No need to detatch I believe the decode can detach but the encoder if it terminates needs to
-            // leave the shared memory alone so that the decoder can access it
-        }
-        // Might be a better exception here but not super familiar with what to throw so just any catch is good for now
-        catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
-        return 1;
-        }
-    // };
+    try {
+
+        boost::interprocess::managed_shared_memory shareCipherMem(boost::interprocess::open_or_create, "CipherTextMemory", MEMORY_MAX);
+        // Set the construct to CipherText for decoder find
+        char* sharedMemoryAddress = shareCipherMem.construct<char>("CipherText")[myEncoder.GetCipherText().size()]();
+
+        // Copy to memory using C style
+        std::memcpy(sharedMemoryAddress,
+                    myEncoder.GetCipherText().c_str(),
+                    myEncoder.GetCipherText().size() + 1);
+
+        // No need to detatch I believe the decode can detach but the encoder if it terminates needs to
+        // leave the shared memory alone so that the decoder can access it
+    }
+    // Might be a better exception here but not super familiar with what to throw so just any catch is good for now
+    catch (const std::exception& ex) {
+    std::cerr << "Error: " << ex.what() << std::endl;
+    return 1;
+    }
 }
