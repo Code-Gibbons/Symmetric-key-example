@@ -10,25 +10,24 @@ project(
 )
 
 # Only do this for the main project not any subprojects
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-    # Set the default target to "encode"
-    set(TARGET_TYPE "encode" CACHE STRING "Target type: 'encode' or 'decode'")
-    set_property(CACHE TARGET_TYPE PROPERTY STRINGS "encode" "decode")
+# Set the default target to "encode"
+set(TARGET_TYPE "encode" CACHE STRING "Target type: 'encode' or 'decode'")
+set_property(CACHE TARGET_TYPE PROPERTY STRINGS "encode" "decode")
 
-    # Let's ensure -std=c++xx instead of -std=g++xx
-    # A toolchain file can be added later for cross platform builds for now target windows native
-    set(CMAKE_CXX_EXTENSIONS ON)
-    set(CMAKE_CXX_COMPILER_ID GNU)
+# Let's ensure -std=c++xx instead of -std=g++xx
+# A toolchain file can be added later for cross platform builds for now target windows native
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_COMPILER_ID GNU)
 
-    # Consider some small doxygen packages been wanting to learn how to work with those for awhile
-    # Find the package and create a docs folder, commented out now for basic impl and testing first
-    # find_package(Doxygen)
-    # if(Doxygen_FOUND )
-    # add_subdirectory(docs)
-    # endif()
-endif()
+# Consider some small doxygen packages been wanting to learn how to work with those for awhile
+# Find the package and create a docs folder, commented out now for basic impl and testing first
+# find_package(Doxygen)
+# if(Doxygen_FOUND )
+# add_subdirectory(docs)
+# endif()
+message(STATUS "TARGET_TYPE: ${TARGET_TYPE}")
 
 # Set the appropriate source files depending on the target type
 if(TARGET_TYPE STREQUAL "encode")
