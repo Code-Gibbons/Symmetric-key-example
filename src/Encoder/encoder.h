@@ -1,8 +1,9 @@
 #ifndef ENCODER_H
 #define ENCODER_H
 
-#include <string>       // std namespace string not C style string
-#include <eccrypto.h>   // Public and Private key
+#include <string>       // std::string
+#include <eccrypto.h>   // CryptoPP::ECIES<CryptoPP::ECP>::PublicKey and
+                        // CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey
 namespace encoder {
 class Encoder {
    private:
