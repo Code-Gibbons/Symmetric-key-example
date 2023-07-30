@@ -131,7 +131,9 @@ int main(int argc, char** argv) {
     outFile.write(ciphertext.data(), ciphertext.size());
     outFile.close();
 
+#ifdef DEBUG
     std::cout << "Ciphertext has been written to the file: " << filename << std::endl;
+#endif
     return 1;
 
 }

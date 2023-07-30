@@ -116,7 +116,9 @@ int main(int argc, char** argv)
     // Set the ciphertext in the decoder
     myDecoder.SetCipherText(buffer.data());
 
+#ifdef DEBUG
     std::cout << "Ciphertext has been read from the file: " << filename << std::endl;
+#endif
 
     // Convert the ciphertext to hex for printing
     std::string hexCiphertext;
@@ -126,9 +128,10 @@ int main(int argc, char** argv)
             false
         ));
 
+#ifdef DEBUG
     // Print the loaded ciphertext as hex
     std::cout << "Loaded ciphertext (hex): " << hexCiphertext << std::endl;
-
+#endif
 
     myDecoder.DecodeMessage();
     std::cout << "Using the key: "<< myDecoder.GetUserKey() << ". Decoded the following message: \n" << myDecoder.GetPlainTextMsg() << std::endl;

@@ -196,9 +196,11 @@ void encoder::Encoder::EncodeMessage() {
     }
     else {
         std::cout << "Encoding the provided message." << std::endl;
-        std::cout << "Using passkey: " << userKey << std::endl;
-        std::cout << "For   message: " << plainTextMsg
-                  << std::endl;
+#ifdef DEBUG
+std::cout << "Using passkey: " << userKey << std::endl;
+std::cout << "For   message: " << plainTextMsg
+            << std::endl;
+#endif
 
     GenerateECCKeysFromUserKey();
 

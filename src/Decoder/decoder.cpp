@@ -108,8 +108,9 @@ bool ReadKeysFromTemporaryDirectory(std::string& privateKeyHex, std::string& pub
     privateKeyFile >> privateKeyHex;
     privateKeyFile.close();
 
-    // TODO DEBUG REMOVE THIS
+#ifdef DEBUG
     std::cout << "Loaded private key hex: " << privateKeyHex << std::endl;
+#endif
 
     std::ifstream publicKeyFile(publicKeyPath);
     if (!publicKeyFile) {
@@ -156,10 +157,11 @@ void decoder::Decoder::DecodeMessage() {
     }
     else {
         std::cout << "Decoding the provided message." << std::endl;
+#ifdef DEBUG
         std::cout << "Using passkey : " << userKey << std::endl;
         std::cout << "For ciphertext: " << cipherText
                   << std::endl;
-
+#endif
     // We need the keys generated earlier so grab them
     std::string privateKeyHex, publicKeyHex;
     if (!ReadKeysFromTemporaryDirectory(privateKeyHex, publicKeyHex)) {
