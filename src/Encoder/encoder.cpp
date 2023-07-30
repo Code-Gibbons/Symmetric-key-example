@@ -2,9 +2,7 @@
 
 #include <readline/readline.h>
 #include <iostream>
-
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+#include <cstdlib> // For temporary directory handling
 
 #include <eccrypto.h>
 #include <osrng.h>
@@ -13,6 +11,8 @@
 #include <files.h>
 #include <asn.h>
 #include <oids.h>
+#include <filters.h> // CryptoPP::StringSource
+
 
 //******************************************************************************
 // Private instance variables
@@ -115,29 +115,60 @@ void encoder::Encoder::GenerateECCKeysFromUserKey()
 }
 
 // Encrypt the message using the public key we just generated
-std::string encoder::Encoder::ECC_EncryptMessage(void) {
-        std::string cipherText;
-
-        CryptoPP::AutoSeededRandomPool prng;
-        CryptoPP::ECIES<CryptoPP::ECP>::Encryptor encryptor(publicKey);
-        CryptoPP::StringSource(plainTextMsg, true, new CryptoPP::PK_EncryptorFilter(prng, encryptor,
-        new CryptoPP::StringSink(cipherText)));
-
-        return cipherText;
-
-}
-
-// This will be moved to the decrypt class after I verify I did all this correctly
-std::string encoder::Encoder::ECC_DecryptMessage(void) {
-    std::string decryptedText;
+std::string encoder::Encoder::ECC_EncryptMessage(const CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& publicKey) {
+    std::string cipherText;
 
     CryptoPP::AutoSeededRandomPool prng;
-    CryptoPP::ECIES<CryptoPP::ECP>::Decryptor decryptor(privateKey);
-    CryptoPP::StringSource(cipherText, true,
-                           new CryptoPP::PK_DecryptorFilter(prng, decryptor,
-                                                           new CryptoPP::StringSink(decryptedText)));
+    CryptoPP::ECIES<CryptoPP::ECP>::Encryptor encryptor(publicKey);
+    CryptoPP::StringSource(plainTextMsg, true, new CryptoPP::PK_EncryptorFilter(prng, encryptor,
+    new CryptoPP::StringSink(cipherText)));
 
-    return decryptedText;
+    return cipherText;
+}
+
+// Function to dump keys to a temporary directory
+void TempKeyStorage(const std::string& privateKeyHex, const std::string& publicKeyHex) {
+    // Get the temporary directory path
+    std::string tempDir;
+
+// Mostly dev'd on windows until I get a linux vm setup but may as well try and make this portable
+#ifdef _WIN32
+    char* tempDirEnvVar = std::getenv("TEMP");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#else
+    char* tempDirEnvVar = std::getenv("TMPDIR");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#endif
+
+    if (tempDir.empty()) {
+        std::cerr << "Error: Unable to get temporary directory path." << std::endl;
+        return;
+    }
+
+    // Combine the temporary directory with file names
+    std::string privateKeyPath = tempDir + "/private_key.txt";
+    std::string publicKeyPath = tempDir + "/public_key.txt";
+
+    // Write keys to files in the temporary directory
+    std::ofstream privateKeyFile(privateKeyPath);
+    if (!privateKeyFile) {
+        std::cerr << "Error: Unable to open private key file for writing." << std::endl;
+        return;
+    }
+    privateKeyFile << privateKeyHex;
+    privateKeyFile.close();
+
+    std::ofstream publicKeyFile(publicKeyPath);
+    if (!publicKeyFile) {
+        std::cerr << "Error: Unable to open public key file for writing." << std::endl;
+        return;
+    }
+    publicKeyFile << publicKeyHex;
+    publicKeyFile.close();
+
+    std::cout << "Keys dumped to temporary directory: " << tempDir << std::endl;
 }
 
 
@@ -162,11 +193,25 @@ void encoder::Encoder::EncodeMessage() {
                   << std::endl;
 
     // Generate ECC keys from the user key
-    CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
-    CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
     GenerateECCKeysFromUserKey();
 
-    cipherText = ECC_EncryptMessage();
+    // Output the private key
+    std::string privateKeyHex;
+    CryptoPP::HexEncoder hexPrivateEncoder(new CryptoPP::StringSink(privateKeyHex), false);
+    privateKey.Save(hexPrivateEncoder);
+    hexPrivateEncoder.MessageEnd();
+
+
+    // Output the public key
+    std::string publicKeyHex;
+    CryptoPP::HexEncoder hexPublicEncoder(new CryptoPP::StringSink(publicKeyHex), false);
+    publicKey.Save(hexPublicEncoder);
+    hexPublicEncoder.MessageEnd();
+
+    TempKeyStorage(privateKeyHex, publicKeyHex);
+
+    cipherText = ECC_EncryptMessage(publicKey);
+
     std::string hexCipherText;
     CryptoPP::StringSource(cipherText, true,
         new CryptoPP::HexEncoder(
@@ -176,10 +221,6 @@ void encoder::Encoder::EncodeMessage() {
 
 
     std::cout << "For the provided key generated the following ciphertext:\n" << hexCipherText << std::endl;
-
-    std::string originalText = ECC_DecryptMessage();
-    std::cout << "For the provided key generated the following ciphertext:\n" << originalText << std::endl;
-
 
     }
 }

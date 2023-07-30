@@ -14,7 +14,9 @@ This project consists of two C++ CLI programs
 -m <message> # The user provided message
 ```
 ### Example Call:
-`myEncoder -k myKey -m myMessage`
+It should be noted that you can pass the arguments without quoting `""` but this will truncate the input at the first space.\
+If you want to use space delimitated messages you must wrap them like below:\
+`myEncoder -k "my secret key" -m "my secret message"`
 
 ### Example Output
 ```
@@ -27,17 +29,23 @@ Encoding complete a ciphertext has been generated from the provided passkey and 
 -k <key> # The user provided key
 ```
 ### Example Call:
-`myDecoder -k myKey`
+It should be noted that you can pass the arguments without quoting `""` but this will truncate the input at the first space.\
+If you want to use space delimitated messages you must wrap them like below:\
+`myDecoder -k "my secret key"`
 
 ### Example Output:
 #### Failure:
 ```
-Decoder Error: The key provided doesn't match the key for the given ciphertext. Please verify input key.
+Decoder Error: missing the key, cannot decode ciphertext.
+```
+or
+```
+Decoder Error: missing the ciphertext, key has nothing to decode.
 ```
 
 #### Success:
 ```
-The original message entered for the provided key was myMessage.
+Using the key: my secret key. Decoded the following message: my secret message
 ```
 
 ## Tools and Libraries
