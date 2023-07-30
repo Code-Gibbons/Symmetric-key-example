@@ -115,16 +115,15 @@ void encoder::Encoder::GenerateECCKeysFromUserKey()
 }
 
 // Encrypt the message using the public key we just generated
-std::string encoder::Encoder::ECC_EncryptMessage(void) {
-        std::string cipherText;
+std::string encoder::Encoder::ECC_EncryptMessage(const CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& publicKey) {
+    std::string cipherText;
 
-        CryptoPP::AutoSeededRandomPool prng;
-        CryptoPP::ECIES<CryptoPP::ECP>::Encryptor encryptor(publicKey);
-        CryptoPP::StringSource(plainTextMsg, true, new CryptoPP::PK_EncryptorFilter(prng, encryptor,
-        new CryptoPP::StringSink(cipherText)));
+    CryptoPP::AutoSeededRandomPool prng;
+    CryptoPP::ECIES<CryptoPP::ECP>::Encryptor encryptor(publicKey);
+    CryptoPP::StringSource(plainTextMsg, true, new CryptoPP::PK_EncryptorFilter(prng, encryptor,
+    new CryptoPP::StringSink(cipherText)));
 
-        return cipherText;
-
+    return cipherText;
 }
 
 // Function to dump keys to a temporary directory
@@ -194,8 +193,6 @@ void encoder::Encoder::EncodeMessage() {
                   << std::endl;
 
     // Generate ECC keys from the user key
-    CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
-    CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
     GenerateECCKeysFromUserKey();
 
     // Output the private key
@@ -213,7 +210,8 @@ void encoder::Encoder::EncodeMessage() {
 
     TempKeyStorage(privateKeyHex, publicKeyHex);
 
-    cipherText = ECC_EncryptMessage();
+    cipherText = ECC_EncryptMessage(publicKey);
+
     std::string hexCipherText;
     CryptoPP::StringSource(cipherText, true,
         new CryptoPP::HexEncoder(

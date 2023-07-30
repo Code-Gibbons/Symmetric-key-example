@@ -109,16 +109,17 @@ int main(int argc, char** argv) {
     std::string ciphertext = myEncoder.GetCipherText();
     static const std::string filename = "ciphertext.bin";
     std::ofstream outFile(filename, std::ios::binary);
-        if (!outFile)
-        {
-            std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
-            return -1;
-        }
 
-        outFile.write(ciphertext.data(), ciphertext.size());
-        outFile.close();
+    if (!outFile)
+    {
+        std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
+        return -1;
+    }
 
-        std::cout << "Ciphertext has been written to the file: " << filename << std::endl;
-        return 1;
+    outFile.write(ciphertext.data(), ciphertext.size());
+    outFile.close();
+
+    std::cout << "Ciphertext has been written to the file: " << filename << std::endl;
+    return 1;
 
 }

@@ -40,7 +40,6 @@ else {
     "cmake -S . -B $buildDir -G ""MinGW Makefiles"" -DTARGET_TYPE=encode"
 }
 
-# $cmakeCommand = "cmake -S . -B $buildDir -G ""MinGW Makefiles"" -DTARGET_TYPE=encode"
 Write-Host "Generate makefiles for ming32-make."
 Invoke-Expression $cmakeCommand
 
@@ -49,8 +48,8 @@ Write-Host "Switch to makefile dir."
 Push-Location -Path $buildDir
 Write-Host($buildDir)
 
-# Call Makefile
-$makeCommand = "mingw32-make"
+# Call Makefile HOW COULD I FORGET J4 NO WONDER ITS BEEN SLOW ARHG
+$makeCommand = "mingw32-make -j4"
 Write-Host "Running makefile."
 Invoke-Expression $makeCommand
 
