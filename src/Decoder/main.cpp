@@ -74,9 +74,28 @@ int main(int argc, char** argv)
         return -1; // Something signaled end of program
     }
 
+    std::string tempDir;
+#ifdef _WIN32
+    char* tempDirEnvVar = std::getenv("TEMP");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#else
+    char* tempDirEnvVar = std::getenv("TMPDIR");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#endif
+     if (tempDir.empty()) {
+        std::cerr << "Error: Unable to get temporary directory path." << std::endl;
+        return false;
+    }
+
+    std::string cipherFileTempPath = tempDir + "/ciphertext.bin";
+    // Going with filestream to prove this works maybe come back to share mem
+    static const std::string filename = cipherFileTempPath;
+
+
     // Let's just do filestream to get this working boost has proven alot more effort than I expected
     std::string ciphertext;
-    static const std::string filename = "ciphertext.bin";
     std::ifstream inFile(filename, std::ios::binary);
     if (!inFile)
     {
@@ -98,12 +117,13 @@ int main(int argc, char** argv)
     myDecoder.SetCipherText(buffer.data());
 
     std::cout << "Ciphertext has been read from the file: " << filename << std::endl;
+
     // Convert the ciphertext to hex for printing
     std::string hexCiphertext;
     CryptoPP::StringSource(ciphertext, true,
         new CryptoPP::HexEncoder(
             new CryptoPP::StringSink(hexCiphertext),
-            false // uppercase
+            false
         ));
 
     // Print the loaded ciphertext as hex
@@ -113,7 +133,7 @@ int main(int argc, char** argv)
     myDecoder.DecodeMessage();
     std::cout << "Using the key: "<< myDecoder.GetUserKey() << ". Decoded the following message: \n" << myDecoder.GetPlainTextMsg() << std::endl;
 
-
+    std::remove(cipherFileTempPath.c_str());
 
     return 0;
 
