@@ -66,18 +66,6 @@ FetchContent_GetProperties(cryptopp-cmake)
 # Boost time for shared memory
 message("Attempting to fetch Boost Interprocess Library")
 
-# Define the desired Boost version and components
-# set(BOOST_VERSION "1.76.0")
-# set(BOOST_COMPONENTS interprocess)
-
-# # Fetch Boost
-# FetchContent_Declare(
-# boost
-# URL "https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.zip"
-# )
-# FetchContent_MakeAvailable(boost)
-# include_directories(${boost_SOURCE_DIR})
-
 # message("All Libraries are fetched and avaliable linking to the executable.")
 add_executable(${TARGET_NAME}
     ${SOURCE_FILES}

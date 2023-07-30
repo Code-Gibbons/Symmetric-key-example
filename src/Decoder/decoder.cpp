@@ -1,15 +1,15 @@
 #include "decoder.h"
 
-#include <readline/readline.h>
-#include <iostream>
+#include <cstdlib>       // For temporary directory handling
+#include <fstream>      // Making files
+#include <files.h>      // Making files
 
 #include <eccrypto.h>
-#include <osrng.h>
-#include <hex.h>
+#include <osrng.h>      // PRNG
+#include <hex.h>        // Crypto++ hex conversion
 #include <pwdbased.h>
-#include <files.h>
 #include <asn.h>
-#include <oids.h>
+#include <oids.h>       // ECC
 
 //******************************************************************************
 // Private instance variables
@@ -109,6 +109,54 @@ void decoder::Decoder::GenerateECCKeysFromUserKey()
     privateKey.MakePublicKey(publicKey);
 }
 
+// Function to read keys from the temporary directory
+bool ReadKeysFromTemporaryDirectory(std::string& privateKeyHex, std::string& publicKeyHex) {
+    // Get the temporary directory path
+    std::string tempDir;
+#ifdef _WIN32
+    char* tempDirEnvVar = std::getenv("TEMP");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#else
+    char* tempDirEnvVar = std::getenv("TMPDIR");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#endif
+
+    if (tempDir.empty()) {
+        std::cerr << "Error: Unable to get temporary directory path." << std::endl;
+        return false;
+    }
+
+    // Combine the temporary directory with file names
+    std::string privateKeyPath = tempDir + "/private_key.txt";
+    std::string publicKeyPath = tempDir + "/public_key.txt";
+
+    // Read keys from files in the temporary directory
+    std::ifstream privateKeyFile(privateKeyPath);
+    if (!privateKeyFile) {
+        std::cerr << "Error: Unable to open private key file for reading." << std::endl;
+        return false;
+    }
+    privateKeyFile >> privateKeyHex;
+    privateKeyFile.close();
+
+    std::ifstream publicKeyFile(publicKeyPath);
+    if (!publicKeyFile) {
+        std::cerr << "Error: Unable to open public key file for reading." << std::endl;
+        return false;
+    }
+    publicKeyFile >> publicKeyHex;
+    publicKeyFile.close();
+
+    // Delete the temporary files
+    std::remove(privateKeyPath.c_str());
+    std::remove(publicKeyPath.c_str());
+
+    return true;
+}
+
+
 // Decrypt the mesasge using the key
 std::string decoder::Decoder::ECC_DecryptMessage(void) {
     std::string decryptedText;
@@ -142,10 +190,21 @@ void decoder::Decoder::DecodeMessage() {
         std::cout << "For ciphertext: " << cipherText
                   << std::endl;
 
-    // Generate ECC keys from the user key
-    CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
-    CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
-    GenerateECCKeysFromUserKey();
+    // We need the keys generated earlier so grab them
+    std::string privateKeyHex, publicKeyHex;
+    if (!ReadKeysFromTemporaryDirectory(privateKeyHex, publicKeyHex)) {
+        std::cerr << "Error: Unable to read keys from temporary directory." << std::endl;
+        return;
+    }
+
+    // Create a CryptoPP::StringSource to decode the hex-encoded private key
+    CryptoPP::StringSource privateKeyDecoder(privateKeyHex, true);
+    privateKey.Load(privateKeyDecoder);
+
+
+    // Create a CryptoPP::StringSource to decode the hex-encoded public key
+    CryptoPP::StringSource publicKeyDecoder(publicKeyHex, true);
+    publicKey.Load(publicKeyDecoder);
 
     plainTextMsg = ECC_DecryptMessage();
 

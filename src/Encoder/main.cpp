@@ -5,8 +5,6 @@
 #include <sstream>              // istringstream, iss
 #include <readline/readline.h>  // getline
 #include <fstream>
-// #include <boost/interprocess/managed_shared_memory.hpp>
-// #include <boost/interprocess/mapped_region.hpp>
 
 #include "encoder.h"  // Encoder class
 

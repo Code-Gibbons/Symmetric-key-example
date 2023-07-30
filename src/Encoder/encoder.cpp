@@ -2,6 +2,7 @@
 
 #include <readline/readline.h>
 #include <iostream>
+#include <cstdlib> // For temporary directory handling
 
 #include <eccrypto.h>
 #include <osrng.h>
@@ -10,6 +11,8 @@
 #include <files.h>
 #include <asn.h>
 #include <oids.h>
+#include <filters.h> // CryptoPP::StringSource
+
 
 //******************************************************************************
 // Private instance variables
@@ -124,6 +127,51 @@ std::string encoder::Encoder::ECC_EncryptMessage(void) {
 
 }
 
+// Function to dump keys to a temporary directory
+void TempKeyStorage(const std::string& privateKeyHex, const std::string& publicKeyHex) {
+    // Get the temporary directory path
+    std::string tempDir;
+
+// Mostly dev'd on windows until I get a linux vm setup but may as well try and make this portable
+#ifdef _WIN32
+    char* tempDirEnvVar = std::getenv("TEMP");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#else
+    char* tempDirEnvVar = std::getenv("TMPDIR");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#endif
+
+    if (tempDir.empty()) {
+        std::cerr << "Error: Unable to get temporary directory path." << std::endl;
+        return;
+    }
+
+    // Combine the temporary directory with file names
+    std::string privateKeyPath = tempDir + "/private_key.txt";
+    std::string publicKeyPath = tempDir + "/public_key.txt";
+
+    // Write keys to files in the temporary directory
+    std::ofstream privateKeyFile(privateKeyPath);
+    if (!privateKeyFile) {
+        std::cerr << "Error: Unable to open private key file for writing." << std::endl;
+        return;
+    }
+    privateKeyFile << privateKeyHex;
+    privateKeyFile.close();
+
+    std::ofstream publicKeyFile(publicKeyPath);
+    if (!publicKeyFile) {
+        std::cerr << "Error: Unable to open public key file for writing." << std::endl;
+        return;
+    }
+    publicKeyFile << publicKeyHex;
+    publicKeyFile.close();
+
+    std::cout << "Keys dumped to temporary directory: " << tempDir << std::endl;
+}
+
 
 // Public accessible encode message which takes object fields and encodes a ciphertext msg with the generated key
 void encoder::Encoder::EncodeMessage() {
@@ -149,6 +197,21 @@ void encoder::Encoder::EncodeMessage() {
     CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey privateKey;
     CryptoPP::ECIES<CryptoPP::ECP>::PublicKey publicKey;
     GenerateECCKeysFromUserKey();
+
+    // Output the private key
+    std::string privateKeyHex;
+    CryptoPP::HexEncoder hexPrivateEncoder(new CryptoPP::StringSink(privateKeyHex), false);
+    privateKey.Save(hexPrivateEncoder);
+    hexPrivateEncoder.MessageEnd();
+
+
+    // Output the public key
+    std::string publicKeyHex;
+    CryptoPP::HexEncoder hexPublicEncoder(new CryptoPP::StringSink(publicKeyHex), false);
+    publicKey.Save(hexPublicEncoder);
+    hexPublicEncoder.MessageEnd();
+
+    TempKeyStorage(privateKeyHex, publicKeyHex);
 
     cipherText = ECC_EncryptMessage();
     std::string hexCipherText;
