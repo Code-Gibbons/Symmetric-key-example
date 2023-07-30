@@ -8,8 +8,9 @@
 
 using namespace decoder;
 
-// Process vargs and populate decoder object
-// Returns 0 for arg process or 1 for exit condition (either failure or help prompt presently)
+/****************************************************************************
+ * Process user vargs and populate the decoder object
+ ***************************************************************************/
 int ParseVArgsIntoDecoder(int argc, char** argv, Decoder& myDecoder)
 {
     if (argc <= 1) {
@@ -63,7 +64,9 @@ int ParseVArgsIntoDecoder(int argc, char** argv, Decoder& myDecoder)
     return 0;
 }
 
-
+/****************************************************************************
+ * Main driver code for decoder
+ ***************************************************************************/
 int main(int argc, char** argv)
 {
     Decoder myDecoder = decoder::Decoder();

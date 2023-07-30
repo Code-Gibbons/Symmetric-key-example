@@ -11,10 +11,8 @@ using namespace encoder;
 
 // Constants
 static std::string optionKeywords[] = {"-k", "-m", "-h"};
-static const unsigned int MEMORY_MAX = UINT16_MAX; // We can do dynamic allocation but we'll start here
+static const unsigned int MEMORY_MAX = UINT16_MAX; // We could do dynamic allocation but we'll start here
 
-// Process vargs and populate encoder object
-// Returns 0 for arg process or 1 for exit condition (either failure or help prompt presently)
 /****************************************************************************
  * Process command line args and populate the referenced encoder object
  * @param int      number of input args
@@ -46,7 +44,7 @@ int ParseVArgsIntoEncoder(int argc, char** argv, Encoder& myEncoder)
         std::transform(option.begin(), option.end(), option.begin(),
                    std::function<int(int)>(tolower));
 
-        // Check if the next item exists and is not an option itself; otherwise, move to the next arg
+        // Check if the next item exists and is not an option itself, otherwise, move to the next arg
         if (i + 1 < argc && argv[i + 1][0] != '-') {
             arg = argv[i + 1];
             i++;
