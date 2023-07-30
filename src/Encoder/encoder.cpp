@@ -1,28 +1,27 @@
 #include "encoder.h"
 
-#include <readline/readline.h>
-#include <iostream>
-#include <cstdlib> // For temporary directory handling
+#include <iostream>     // cin, cout
+#include <cstdlib>      // For temporary directory handling
+#include <files.h>      // output file streams
 
-#include <eccrypto.h>
-#include <osrng.h>
-#include <hex.h>
-#include <pwdbased.h>
-#include <files.h>
-#include <asn.h>
-#include <oids.h>
-#include <filters.h> // CryptoPP::StringSource
+#include <eccrypto.h>   // CryptoPP::DL_GroupParameters_EC
+#include <osrng.h>      // CryptoPP::AutoSeededRandomPool
+#include <hex.h>        // CryptoPP::HexEncoder
+#include <pwdbased.h>   // CryptoPP::PKCS5_PBKDF2_HMAC
+#include <asn.h>        // CryptoPP::ASN1::secp256r1
+#include <oids.h>       // CryptoPP::ASN1
+#include <filters.h>    // CryptoPP::StringSource and PK_EncryptorFilter
 
 
-//******************************************************************************
-// Private instance variables
-//******************************************************************************
+/****************************************************************************
+ * Private Vars Both arbitrarily chosen values
+ ***************************************************************************/
 const int unsigned SIZE_BYTES_DERIVED_KEY   = 32;
 const unsigned int NUM_PBKDF2_ITERATIONS    = 10000;
 
-//******************************************************************************
-// Constructors
-//******************************************************************************
+/****************************************************************************
+ * Constructors
+ ***************************************************************************/
 encoder::Encoder::Encoder() {
     encoder::Encoder::userKey = "";
     encoder::Encoder::plainTextMsg = "";
@@ -34,14 +33,14 @@ encoder::Encoder::Encoder() {
 encoder::Encoder::Encoder(std::string userKey, std::string userMsg) {
     encoder::Encoder::userKey = userKey;
     encoder::Encoder::plainTextMsg = userMsg;
-    encoder::Encoder::cipherText = "";  // Empty cipher text until processed
+    encoder::Encoder::cipherText = "";
     encoder::Encoder::publicKey;
     encoder::Encoder::privateKey;
 }
 
-//******************************************************************************
-// Setters
-//******************************************************************************
+/****************************************************************************
+ * Setters
+ ***************************************************************************/
 
 void encoder::Encoder::SetPlainTextMsg(std::string userMsg) {
     encoder::Encoder::plainTextMsg = userMsg;
@@ -64,9 +63,9 @@ void encoder::Encoder::SetPrivateKey(CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey 
 }
 
 
-//******************************************************************************
-// Getters
-//******************************************************************************
+/****************************************************************************
+* Getters
+ ***************************************************************************/
 std::string encoder::Encoder::GetUserKey() { return encoder::Encoder::userKey; }
 
 std::string encoder::Encoder::GetPlainTextMsg() {
@@ -84,20 +83,16 @@ CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey encoder::Encoder::GetPrivateKey(void)
     return privateKey;
 }
 
-
-//******************************************************************************
-// Logic
-//******************************************************************************
-
-// Function to generate ECC keys using ECC generator PBKDF2 which is a "simple"
-// derivation function but still resistant to dictionary attacks
+/****************************************************************************
+ * Generate the key pair using generator PBKDF2 and curve secp256r1
+ ***************************************************************************/
 void encoder::Encoder::GenerateECCKeysFromUserKey()
 {
     CryptoPP::AutoSeededRandomPool prng;
     // According to API below call is a managed with zeroization
     CryptoPP::SecByteBlock derivedKey(SIZE_BYTES_DERIVED_KEY);
-
     CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> ecc;
+
     // Attention should be given that this is CryptoPP::byte not std::byte
     ecc.DeriveKey(derivedKey.data(), derivedKey.size(), 0,
     reinterpret_cast<const CryptoPP::byte*>(userKey.data()),
@@ -105,17 +100,21 @@ void encoder::Encoder::GenerateECCKeysFromUserKey()
 
     prng.IncorporateEntropy(derivedKey.data(), derivedKey.size());
 
-    // This setups params and initializes a key using curve secp256r1
-    // Not sure of advantages or weakness of this curve but it seems popular when researching
-    // so I feel it's sufficiently hardened.
+    // Init Crypto++ params and initializes a key set using curve
     CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> params;
     params.Initialize(CryptoPP::ASN1::secp256r1());
     privateKey.Initialize(prng, params);
     privateKey.MakePublicKey(publicKey);
 }
 
-// Encrypt the message using the public key we just generated
-std::string encoder::Encoder::ECC_EncryptMessage(const CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& publicKey) {
+/****************************************************************************
+ * Encrypt the message using the public key we just generated
+ * @param const const CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& a reference
+ * to the public key we use to encrypt the message
+ * @return std::string the resultant ciphertext from the encode
+ ***************************************************************************/
+
+    std::string encoder::Encoder::ECC_EncryptMessage(const CryptoPP::ECIES<CryptoPP::ECP>::PublicKey& publicKey) {
     std::string cipherText;
 
     CryptoPP::AutoSeededRandomPool prng;
@@ -126,17 +125,21 @@ std::string encoder::Encoder::ECC_EncryptMessage(const CryptoPP::ECIES<CryptoPP:
     return cipherText;
 }
 
-// Function to dump keys to a temporary directory
-void TempKeyStorage(const std::string& privateKeyHex, const std::string& publicKeyHex) {
-    // Get the temporary directory path
-    std::string tempDir;
+/****************************************************************************
+ *  Store the generated ciphertext and public & private keys in temp dir
+ * @param const std::string& reference to the private key hexstring
+ * @param const std::string& reference to the public key hexstring
+ ***************************************************************************/
+void encoder::Encoder::TempKeyStorage(const std::string& privateKeyHex, const std::string& publicKeyHex) {
 
-// Mostly dev'd on windows until I get a linux vm setup but may as well try and make this portable
+    std::string tempDir;
+// Ideally this let's us be platform independent
 #ifdef _WIN32
     char* tempDirEnvVar = std::getenv("TEMP");
     if (tempDirEnvVar)
         tempDir = tempDirEnvVar;
 #else
+    // This part has yet to be verified
     char* tempDirEnvVar = std::getenv("TMPDIR");
     if (tempDirEnvVar)
         tempDir = tempDirEnvVar;
@@ -168,21 +171,26 @@ void TempKeyStorage(const std::string& privateKeyHex, const std::string& publicK
     publicKeyFile << publicKeyHex;
     publicKeyFile.close();
 
+#ifdef DEBUG
     std::cout << "Keys dumped to temporary directory: " << tempDir << std::endl;
+#endif
 }
 
 
-// Public accessible encode message which takes object fields and encodes a ciphertext msg with the generated key
+/****************************************************************************
+ * Public accessible encode message which uses the object's fields and
+ * creates a private & public key and then a ciphertext for the given
+ * plaintext message and user keyphrase
+ ***************************************************************************/
 void encoder::Encoder::EncodeMessage() {
     if (userKey.empty()) {
-        std::cout << "Error encoder missing a key, cannot encode message."
-                  << std::endl;
+        std::cerr << "Error: No key was provided unable to continue encode." << std::endl;
         return;
     }
 
     if (plainTextMsg.empty()) {
-        std::cout
-            << "Error encoder missing a message, key has nothing to encode."
+        std::cerr
+            << "Error: No message was provided cannot encode empty message."
             << std::endl;
         return;
     }
@@ -192,17 +200,14 @@ void encoder::Encoder::EncodeMessage() {
         std::cout << "For   message: " << plainTextMsg
                   << std::endl;
 
-    // Generate ECC keys from the user key
     GenerateECCKeysFromUserKey();
 
-    // Output the private key
+    // Transform both keys into hex representation to store them in temp data
     std::string privateKeyHex;
     CryptoPP::HexEncoder hexPrivateEncoder(new CryptoPP::StringSink(privateKeyHex), false);
     privateKey.Save(hexPrivateEncoder);
     hexPrivateEncoder.MessageEnd();
 
-
-    // Output the public key
     std::string publicKeyHex;
     CryptoPP::HexEncoder hexPublicEncoder(new CryptoPP::StringSink(publicKeyHex), false);
     publicKey.Save(hexPublicEncoder);
@@ -212,15 +217,14 @@ void encoder::Encoder::EncodeMessage() {
 
     cipherText = ECC_EncryptMessage(publicKey);
 
+#ifdef DEBUG
     std::string hexCipherText;
     CryptoPP::StringSource(cipherText, true,
         new CryptoPP::HexEncoder(
             new CryptoPP::StringSink(hexCipherText),
-            false // uppercase
+            false
         ));
-
-
     std::cout << "For the provided key generated the following ciphertext:\n" << hexCipherText << std::endl;
-
+#endif
     }
 }

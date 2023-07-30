@@ -1,25 +1,19 @@
 #include "decoder.h"
 
-#include <cstdlib>       // For temporary directory handling
-#include <fstream>      // Making files
+#include <cstdlib>      // For temporary directory handling
+#include <fstream>      // output file streams
 #include <files.h>      // Making files
 
-#include <eccrypto.h>
-#include <osrng.h>      // PRNG
-#include <hex.h>        // Crypto++ hex conversion
-#include <pwdbased.h>
-#include <asn.h>
-#include <oids.h>       // ECC
+#include <eccrypto.h>   // CryptoPP::DL_GroupParameters_EC
+#include <osrng.h>      // CryptoPP::AutoSeededRandomPool
+#include <hex.h>        // CryptoPP::HexEncoder
+#include <pwdbased.h>   // CryptoPP::PKCS5_PBKDF2_HMAC
+#include <asn.h>        // CryptoPP::ASN1::secp256r1
+#include <oids.h>       // CryptoPP::ASN1
 
-//******************************************************************************
-// Private instance variables
-//******************************************************************************
-const int unsigned SIZE_BYTES_DERIVED_KEY   = 32;
-const unsigned int NUM_PBKDF2_ITERATIONS    = 10000;
-
-//******************************************************************************
-// Constructors
-//******************************************************************************
+/****************************************************************************
+ * Constructors
+ ***************************************************************************/
 decoder::Decoder::Decoder() {
     decoder::Decoder::userKey = "";
     decoder::Decoder::plainTextMsg = "";
@@ -36,9 +30,9 @@ decoder::Decoder::Decoder(std::string userKey, std::string cipherText) {
     decoder::Decoder::privateKey;
 }
 
-//******************************************************************************
-// Setters
-//******************************************************************************
+/****************************************************************************
+ * Setters
+ ***************************************************************************/
 
 void decoder::Decoder::SetPlainTextMsg(std::string userMsg) {
     decoder::Decoder::plainTextMsg = userMsg;
@@ -61,9 +55,9 @@ void decoder::Decoder::SetPrivateKey(CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey 
 }
 
 
-//******************************************************************************
-// Getters
-//******************************************************************************
+/****************************************************************************
+ * Getters
+ ***************************************************************************/
 std::string decoder::Decoder::GetUserKey() { return decoder::Decoder::userKey; }
 
 std::string decoder::Decoder::GetPlainTextMsg() {

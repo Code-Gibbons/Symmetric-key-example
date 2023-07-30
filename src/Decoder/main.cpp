@@ -2,10 +2,7 @@
 #include <functional>           // ptr_fun
 #include <iostream>             // cin, cout
 #include <sstream>              // istringstream, iss
-#include <readline/readline.h>  // getline
-#include <fstream>
-
-#include <hex.h>        // Crypto++ hex conversion
+#include <fstream>              // filestream
 
 #include "decoder.h"
 

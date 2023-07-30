@@ -3,10 +3,8 @@
 #include <functional>           // ptr_fun
 #include <iostream>             // cin, cout
 #include <sstream>              // istringstream, iss
-#include <readline/readline.h>  // getline
-#include <fstream>
 
-#include "encoder.h"  // Encoder class
+#include "encoder.h"            // Encoder class
 
 using namespace encoder;
 
@@ -14,18 +12,14 @@ using namespace encoder;
 static std::string optionKeywords[] = {"-k", "-m", "-h"};
 static const unsigned int MEMORY_MAX = UINT16_MAX; // We can do dynamic allocation but we'll start here
 
-// Takes user input and make it all lowercase for processing
-std::string GetSanitizedUserInput(void) {
-    std::string intput;
-    std::getline(std::cin, intput);
-    // Sanitize input functional edition
-    std::transform(intput.begin(), intput.end(), intput.begin(),
-                   std::function<int(int)>(tolower));
-    return intput;
-}
-
 // Process vargs and populate encoder object
 // Returns 0 for arg process or 1 for exit condition (either failure or help prompt presently)
+/****************************************************************************
+ * Process command line args and populate the referenced encoder object
+ * @param int      number of input args
+ * @param char**   character array pointer of all the provided args
+ * @param Encoder& reference to the encoder object
+ ***************************************************************************/
 int ParseVArgsIntoEncoder(int argc, char** argv, Encoder& myEncoder)
 {
     if (argc <= 1) {
@@ -45,9 +39,6 @@ int ParseVArgsIntoEncoder(int argc, char** argv, Encoder& myEncoder)
             std::cerr << "Error: Invalid input format for option: " << item << std::endl;
             return 1;
         }
-
-        // As long as items that contain spaces are quoted this works as we need it to I think that's
-        // sufficient
 
         option = item;
         // Sanitize option functional edition we only want lowercase, args are allowed casing
@@ -91,7 +82,9 @@ int ParseVArgsIntoEncoder(int argc, char** argv, Encoder& myEncoder)
 }
 
 
-// Driver for encoder
+/****************************************************************************
+ * Driver Code for the encoder
+ ***************************************************************************/
 int main(int argc, char** argv) {
 
     Encoder myEncoder = encoder::Encoder();
@@ -99,6 +92,7 @@ int main(int argc, char** argv) {
     int rc = ParseVArgsIntoEncoder(argc, argv,myEncoder);
     if(rc != 0)
     {
+        std::cerr << "Error: Issue processing input arguments. Cannot continue execution." << std::endl;
         return -1;
     }
 
