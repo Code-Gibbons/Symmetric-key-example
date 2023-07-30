@@ -141,6 +141,9 @@ bool ReadKeysFromTemporaryDirectory(std::string& privateKeyHex, std::string& pub
     privateKeyFile >> privateKeyHex;
     privateKeyFile.close();
 
+    // TODO DEBUG REMOVE THIS
+    std::cout << "Loaded private key hex: " << privateKeyHex << std::endl;
+
     std::ifstream publicKeyFile(publicKeyPath);
     if (!publicKeyFile) {
         std::cerr << "Error: Unable to open public key file for reading." << std::endl;
@@ -198,12 +201,17 @@ void decoder::Decoder::DecodeMessage() {
     }
 
     // Create a CryptoPP::StringSource to decode the hex-encoded private key
-    CryptoPP::StringSource privateKeyDecoder(privateKeyHex, true);
+    CryptoPP::HexDecoder privateKeyDecoder;
+    privateKeyDecoder.Put((const CryptoPP::byte*)privateKeyHex.data(), privateKeyHex.size());
+    privateKeyDecoder.MessageEnd();
+
     privateKey.Load(privateKeyDecoder);
 
-
     // Create a CryptoPP::StringSource to decode the hex-encoded public key
-    CryptoPP::StringSource publicKeyDecoder(publicKeyHex, true);
+    CryptoPP::HexDecoder publicKeyDecoder;
+    publicKeyDecoder.Put((const CryptoPP::byte*)publicKeyHex.data(), publicKeyHex.size());
+    publicKeyDecoder.MessageEnd();
+
     publicKey.Load(publicKeyDecoder);
 
     plainTextMsg = ECC_DecryptMessage();

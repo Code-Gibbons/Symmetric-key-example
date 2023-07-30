@@ -4,7 +4,8 @@
 #include <sstream>              // istringstream, iss
 #include <readline/readline.h>  // getline
 #include <fstream>
-// #include <boost/interprocess/managed_shared_memory.hpp>
+
+#include <hex.h>        // Crypto++ hex conversion
 
 #include "decoder.h"
 
@@ -100,8 +101,18 @@ int main(int argc, char** argv)
     myDecoder.SetCipherText(buffer.data());
 
     std::cout << "Ciphertext has been read from the file: " << filename << std::endl;
+    // Convert the ciphertext to hex for printing
+    std::string hexCiphertext;
+    CryptoPP::StringSource(ciphertext, true,
+        new CryptoPP::HexEncoder(
+            new CryptoPP::StringSink(hexCiphertext),
+            false // uppercase
+        ));
 
-    std::cout << "Received cipher text from shared memory: " << myDecoder.GetCipherText() << std::endl;
+    // Print the loaded ciphertext as hex
+    std::cout << "Loaded ciphertext (hex): " << hexCiphertext << std::endl;
+
+
     myDecoder.DecodeMessage();
     std::cout << "Using the key: "<< myDecoder.GetUserKey() << ". Decoded the following message: \n" << myDecoder.GetPlainTextMsg() << std::endl;
 
