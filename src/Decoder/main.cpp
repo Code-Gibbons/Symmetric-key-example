@@ -78,49 +78,37 @@ int main(int argc, char** argv)
 
     // Let's just do filestream to get this working boost has proven alot more effort than I expected
     std::string ciphertext;
-    std::ifstream file("ciphertext.txt");
-    if (file.is_open()) {
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        myDecoder.SetCipherText(buffer.str());
-        file.close();
-    } else {
-        std::cerr << "Error: Could not open ciphertext file." << std::endl;
-        return 1;
-}
+    static const std::string filename = "ciphertext.bin";
+    std::ifstream inFile(filename, std::ios::binary);
+    if (!inFile)
+    {
+        std::cerr << "Error: Unable to open file for reading: " << filename << std::endl;
+        return -1;
+    }
+
+    // Determine the size of the file
+    inFile.seekg(0, std::ios::end);
+    size_t fileSize = inFile.tellg();
+    inFile.seekg(0, std::ios::beg);
+
+    // Read the ciphertext from the file into a buffer
+    std::vector<char> buffer(fileSize);
+    inFile.read(buffer.data(), fileSize);
+    inFile.close();
+
+    // Set the ciphertext in the decoder
+    myDecoder.SetCipherText(buffer.data());
+
+    std::cout << "Ciphertext has been read from the file: " << filename << std::endl;
 
     std::cout << "Received cipher text from shared memory: " << myDecoder.GetCipherText() << std::endl;
     myDecoder.DecodeMessage();
     std::cout << "Using the key: "<< myDecoder.GetUserKey() << ". Decoded the following message: \n" << myDecoder.GetPlainTextMsg() << std::endl;
 
-    return 0;
-    // // We only want this to read not modify
-    // try
-    // {
-    //     const char* sharedMemoryName = std::getenv("SHARED_MEMORY_NAME");
-    //     // Risky but the build script should succeed here
-    //     if (!sharedMemoryName) {
-    //         std::cerr << "Error: SHARED_MEMORY_NAME environment variable not set." << std::endl;
-    //         return 1;
-    //     }
-    //     boost::interprocess::managed_shared_memory cipherMem(boost::interprocess::open_only, sharedMemoryName);
 
-    //     auto cipherTextPtr = cipherMem.find<char>("CipherText");
-    //     if (cipherTextPtr.first) {
-    //         const char* sharedMemoryAddress = cipherTextPtr.first;
-    //         myDecoder.SetCipherText(sharedMemoryAddress);
-    //         boost::interprocess::shared_memory_object::remove(sharedMemoryName);
-    //     }
-    //     else
-    //     {
-    //         std::cout << "Error no cipher text was found please run the encoder to generate the ciphertext." << std::endl;
-    //     }
-    // }
-    // catch (const std::exception& e) {
-    //     std::cerr << "Error: " << e.what() << std::endl;
-    //     return 1;
-    // }
-    // Shared memory segment will be automatically deleted when all processes using it exit
+
+    return 0;
+
 
 
 }
