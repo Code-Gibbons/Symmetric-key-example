@@ -16,7 +16,7 @@
 /****************************************************************************
  * Private Vars Both arbitrarily chosen values
  ***************************************************************************/
-const int unsigned SIZE_BYTES_DERIVED_KEY   = 32;
+const int unsigned SIZE_BYTES_DERIVED_KEY   = UINT16_MAX;
 const unsigned int NUM_PBKDF2_ITERATIONS    = 10000;
 
 /****************************************************************************

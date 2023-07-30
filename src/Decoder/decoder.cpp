@@ -155,7 +155,7 @@ void decoder::Decoder::DecodeMessage() {
         return;
     }
     else {
-        std::cout << "Encoding the provided message." << std::endl;
+        std::cout << "Decoding the provided message." << std::endl;
         std::cout << "Using passkey : " << userKey << std::endl;
         std::cout << "For ciphertext: " << cipherText
                   << std::endl;

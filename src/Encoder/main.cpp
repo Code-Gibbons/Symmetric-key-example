@@ -100,11 +100,28 @@ int main(int argc, char** argv) {
     std::cout << "Attempting to encode" << std::endl;
     myEncoder.EncodeMessage();
 
-    // Going with filestream to prove this works maybe come back to share mem
-    std::string ciphertext = myEncoder.GetCipherText();
-    static const std::string filename = "ciphertext.bin";
-    std::ofstream outFile(filename, std::ios::binary);
+        std::string tempDir;
+#ifdef _WIN32
+    char* tempDirEnvVar = std::getenv("TEMP");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#else
+    char* tempDirEnvVar = std::getenv("TMPDIR");
+    if (tempDirEnvVar)
+        tempDir = tempDirEnvVar;
+#endif
+     if (tempDir.empty()) {
+        std::cerr << "Error: Unable to get temporary directory path." << std::endl;
+        return false;
+    }
 
+    std::string cipherFileTempPath = tempDir + "/ciphertext.bin";
+    // Going with filestream to prove this works maybe come back to share mem
+    static const std::string filename = cipherFileTempPath;
+
+    std::string ciphertext = myEncoder.GetCipherText();
+
+    std::ofstream outFile(filename, std::ios::binary);
     if (!outFile)
     {
         std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
