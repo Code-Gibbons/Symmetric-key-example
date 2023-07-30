@@ -130,7 +130,7 @@ void encoder::Encoder::GenerateECCKeysFromUserKey()
  * @param const std::string& reference to the private key hexstring
  * @param const std::string& reference to the public key hexstring
  ***************************************************************************/
-void encoder::Encoder::TempKeyStorage(const std::string& privateKeyHex, const std::string& publicKeyHex) {
+void TempKeyStorage(const std::string& privateKeyHex, const std::string& publicKeyHex) {
 
     std::string tempDir;
 // Ideally this let's us be platform independent

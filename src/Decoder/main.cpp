@@ -3,7 +3,7 @@
 #include <iostream>             // cin, cout
 #include <sstream>              // istringstream, iss
 #include <fstream>              // filestream
-
+#include <hex.h>                // CryptoPP::HexEncoder
 #include "decoder.h"
 
 using namespace decoder;

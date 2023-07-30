@@ -3,6 +3,7 @@
 #include <functional>           // ptr_fun
 #include <iostream>             // cin, cout
 #include <sstream>              // istringstream, iss
+#include <fstream>
 
 #include "encoder.h"            // Encoder class
 

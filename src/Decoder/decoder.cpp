@@ -75,33 +75,6 @@ CryptoPP::ECIES<CryptoPP::ECP>::PrivateKey decoder::Decoder::GetPrivateKey(void)
     return privateKey;
 }
 
-//******************************************************************************
-// Logic
-//******************************************************************************
-
-// Generate ECC keyset from user key
-void decoder::Decoder::GenerateECCKeysFromUserKey()
-{
-    CryptoPP::AutoSeededRandomPool prng;
-    // According to API below call is a managed with zeroization
-    CryptoPP::SecByteBlock derivedKey(SIZE_BYTES_DERIVED_KEY);
-
-    CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> ecc;
-    // Attention should be given that this is CryptoPP::byte not std::byte
-    ecc.DeriveKey(derivedKey.data(), derivedKey.size(), 0,
-    reinterpret_cast<const CryptoPP::byte*>(userKey.data()),
-    userKey.size(), nullptr, 0, NUM_PBKDF2_ITERATIONS);
-
-    prng.IncorporateEntropy(derivedKey.data(), derivedKey.size());
-
-    // This setups params and initializes a key using curve secp256r1
-    // Not sure of advantages or weakness of this curve but it seems popular when researching
-    // so I feel it's sufficiently hardened.
-    CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> params;
-    params.Initialize(CryptoPP::ASN1::secp256r1());
-    privateKey.Initialize(prng, params);
-    privateKey.MakePublicKey(publicKey);
-}
 
 // Function to read keys from the temporary directory
 bool ReadKeysFromTemporaryDirectory(std::string& privateKeyHex, std::string& publicKeyHex) {
