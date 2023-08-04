@@ -1,7 +1,8 @@
 # CMake build system generation for symmetric key example project
 
-# Lowest cmake version I feel am familar with using 3 in general should be fine do not allow < 3.x
-cmake_minimum_required(VERSION 3.17)
+# The Crypto++ dictates minimum of 3.21 for "Modern" CMake this is fine build stuff should be cutting edge
+# instead of version locked
+cmake_minimum_required(VERSION 3.21)
 
 project(
     symmetric-key-project
@@ -48,29 +49,26 @@ else()
     message(FATAL_ERROR "Invalid target type: '${TARGET_TYPE}'. Use 'encode' or 'decode'.")
 endif()
 
-# Rather than making a CMakeList for the submodule let's fetch it and make things easier
 message("Attempting to fetch Crypto++ Library")
 
 include(FetchContent)
 
-# Go figure I pick a library the doesn't support CMake this repo seems to attempt to fix that issue let's try
+# Rather than making a CMakeList for the submodule let's fetch it and make things easier
+# This library isn't supported natively by CMake but this repo has produce machine dependent builds base off
+# a hot mess of cmake source and probably toolchains and all other manners of tomfoolery
 FetchContent_Declare(
     cryptopp-cmake
     GIT_REPOSITORY https://github.com/abdes/cryptopp-cmake.git
     GIT_TAG f857b775bcb4ff24e4993d85cce811587f8b0616 # CMake 8.8 release
 )
 
+# We need to be able to use everything after all
 FetchContent_MakeAvailable(cryptopp-cmake)
 FetchContent_GetProperties(cryptopp-cmake)
 
-# Boost time for shared memory
-message("Attempting to fetch Boost Interprocess Library")
-
-# message("All Libraries are fetched and avaliable linking to the executable.")
+message("All Libraries are fetched and avaliable linking to the executable.")
 add_executable(${TARGET_NAME}
     ${SOURCE_FILES}
 )
 
-# target_link_directories(${PROJECT_NAME} PRIVATE ${cryptopp_BINARY_DIR})
-# target_include_directories(${PROJECT_NAME} PRIVATE ${cryptopp_SOURCE_DIR})
 target_link_libraries(${TARGET_NAME} PRIVATE cryptopp)
